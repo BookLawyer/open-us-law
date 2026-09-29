@@ -1,48 +1,36 @@
-**Save this as `data/LICENSE.md` in the repo.**
-
 ## The law itself is public domain
 
 The statutory, regulatory, and constitutional **text** in this dataset is a work of
 government and is **not subject to copyright** under the government-edicts doctrine
-(*Georgia v. Public.Resource.Org, Inc.*, 590 U.S. ___ (2020); *Banks v. Manchester*,
+(*Georgia v. Public.Resource.Org, Inc.*, 590 U.S. 255 (2020); *Banks v. Manchester*,
 128 U.S. 244 (1888)). You may use the underlying legal text freely, without permission
 or attribution, for any purpose.
 
-## Our compilation is CC BY 4.0
+## Our compilation is CC BY-NC 4.0 (from v2026.09)
 
 The **compilation, structuring, normalization, hierarchy, stable identifiers, breadcrumbs,
 source-URL mapping, and other metadata** that this project adds on top of the raw legal
-text are licensed under the **Creative Commons Attribution 4.0 International License
-(CC BY 4.0)**.
+text are licensed, from snapshot `v2026.09`, under the **Creative Commons
+Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)**.
 
 You are free to:
 
 - **Share** - copy and redistribute the material in any medium or format.
-- **Adapt** - remix, transform, and build upon the material for any purpose, including
-  commercially.
+- **Adapt** - remix, transform, and build upon the material.
 
-Under the following term:
+Under the following terms:
 
 - **Attribution** - You must give appropriate credit, provide a link to the license, and
   indicate if changes were made. You may do so in any reasonable manner, but not in any
   way that suggests the licensor endorses you or your use.
+- **NonCommercial** - You may not use the material for commercial purposes.
 
-Full license text: https://creativecommons.org/licenses/by/4.0/legalcode
-Human-readable summary: https://creativecommons.org/licenses/by/4.0/
+For commercial use of the compilation, email contact@vaquill.ai for a commercial licence.
 
-### Suggested attribution
+Full license text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
 
-> Structured US primary-law data from the Open US Law corpus by Vaquill AI
-> (https://github.com/Vaquill-AI/open-us-law), used under CC BY 4.0.
+## Earlier snapshots
 
-## No warranty; not legal advice
-
-This dataset is provided "as is," without warranty of any kind. Each snapshot is a
-**point-in-time archive**, not the current state of the law, and may be incomplete or
-contain errors. It is **not legal advice**. Always verify any section against its official
-government source before relying on it.
-
----
-
-SPDX-License-Identifier: CC-BY-4.0
-Copyright (c) 2026 Vaquill AI - compilation and metadata only; the underlying legal text is public domain.
+Snapshots published before `v2026.09` were released under CC BY 4.0
+(https://creativecommons.org/licenses/by/4.0/legalcode), and that licence continues to
+apply to copies of those snapshots.

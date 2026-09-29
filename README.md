@@ -1,7 +1,7 @@
 # Open US Law
 
 **Open, structured US primary law - plus the scrapers that build it.**  
-State statutory codes, the US Code, the Code of Federal Regulations, state administrative regulations, state and federal constitutions, and court rules - normalized to a single schema, overwhelmingly from official government sources.
+State statutory codes, the US Code, the Code of Federal Regulations, state administrative regulations, state and federal constitutions, and court rules - normalized to a single schema, from official government sources.
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/GQtnwxf8nQ)
 
@@ -13,7 +13,7 @@ In practice, it does. A state's regulations sit behind a login. Court rules are 
 
 We are not accepting it.
 
-So here is every US statute, regulation, constitution, court rule and agency guidance document we could get our hands on. Pulled from official government sources. Cleaned, parsed, deduplicated, structured, and handed over. Three million sections. No key, no quota, no seat licence, no sales call, no contract, no catch. Download it and do whatever you like with it, including building something that competes with us.
+So here is every US statute, regulation, constitution, court rule, attorney general opinion, agency decision and guidance document we could get our hands on. Pulled from official government sources. Cleaned, parsed, deduplicated, structured, and handed over. Five million sections. No key, no quota, no sign-up, no sales call. Download it and use it for research, teaching, legal aid, journalism, open source, anything non-commercial. If you want to build a commercial product on it, talk to us.
 
 We built this because somebody had to, and because the people who could have done it years ago decided the paywall was more interesting.
 
@@ -50,22 +50,24 @@ ds = load_dataset("vaquill/open-us-law", data_files="us_ca_statutes.parquet")
 rules = load_dataset("vaquill/open-us-law", data_files="us_*_court_rules.parquet")
 ```
 
-Prefer a direct download? Everything is mirrored on Cloudflare R2 (zero egress, range-request friendly): browse **[oss-data-us.vaquill.ai](https://oss-data-us.vaquill.ai/index.html)**, grab the [combined tarball](https://oss-data-us.vaquill.ai/v2026.08/open-us-law-v2026.08-parquet.tar) (4.09 GB), or read the [manifest](https://oss-data-us.vaquill.ai/index.json). `index.json` and `latest.json` always describe the current snapshot, so those URLs never change between releases.
+Prefer a direct download? Everything is mirrored on Cloudflare R2 (zero egress, range-request friendly): browse **[oss-data-us.vaquill.ai](https://oss-data-us.vaquill.ai/index.html)**, grab the [combined tarball](https://oss-data-us.vaquill.ai/v2026.09/open-us-law-v2026.09-parquet.tar) (7.07 GB), or read the [manifest](https://oss-data-us.vaquill.ai/index.json). `index.json` and `latest.json` always describe the current snapshot, so those URLs never change between releases.
 
-Snapshot `v2026.08` contains **2,978,617 sections** across 229 files:
+Snapshot `v2026.09` contains **5,276,632 sections** across 317 files:
 
 | Corpus | Sections | Jurisdictions |
 |---|---:|---|
-| Statutes (state, territorial, and the US Code) | 1,997,490 | 51 |
-| Regulations (state and federal) | 885,121 | 17 |
-| Court rules | 43,809 | 44 |
-| Agency guidance (including state insurance bulletins) | 25,461 | 50 |
-| Constitutions | 13,382 | 52 |
-| Federal rulings, treaties, executive orders, proclamations and other | 13,354 | federal |
+| Statutes (state, territorial, and the US Code) | 1,827,612 | 48 |
+| Regulations (state, and the current federal CFR) | 1,579,425 | 49 |
+| State attorney general opinions | 104,540 | 42 |
+| Court rules | 49,244 | 47 |
+| Agency guidance (including state insurance bulletins) | 54,050 | 50 |
+| Constitutions | 11,864 | 51 |
+| Past CFR editions (historical) | 886,066 | federal |
+| Federal session laws, proposed rules, agency decisions, rulings, treaties, executive orders and other | 763,831 | federal |
 
-Parquet, one 24-column schema across every jurisdiction, CC BY 4.0. Sections carry `act_status` (`in_force`, `repealed`, `reserved`, `renumbered`, …), citation, full title/chapter hierarchy, and cross-references into the USC and CFR. New dated snapshots quarterly.
+Parquet, one 24-column schema across every jurisdiction, CC BY-NC 4.0. Sections carry `act_status` (`in_force`, `repealed`, `reserved`, `superseded`, …), citation, full title/chapter hierarchy, and cross-references into the USC and CFR. Every section appears once and carries the official URL it was published from. New dated snapshots quarterly.
 
-`v2026.08` is the first snapshot to publish court rules, agency guidance, and the federal ruling and presidential-document sets. It supersedes `v2026.07`, which contained statutes and constitutions only and remains a fixed historical artifact.
+`v2026.09` supersedes `v2026.08`. It adds regulations for 49 jurisdictions, state attorney general opinions, past CFR editions, proposed federal rules, Federal Register notices, federal session laws and statute compilations, and decisions from the NLRB, FTC, SEC, MSPB, the Board of Immigration Appeals and the Office of Legal Counsel. Some jurisdictions' statutes, regulations and court rules are not in this release; the [dataset card](https://huggingface.co/datasets/vaquill/open-us-law) lists them.
 
 **Coming next:** more state regulations from official publishers, and more corpora to fill the remaining gaps. See what's being added on the [coverage roadmap](https://www.vaquill.ai/docs/api-guide/coverage#coming-next).
 
@@ -139,66 +141,65 @@ Every scraper writes **JSONL** - one normalized node/section per line - to `$OUT
 
 ### State statutes (all 50 states)
 
-Run via `cd scripts/state_scrapers && OUT_DIR=./data python -m src.scrapers.us.states.<xx>.statutes.scrape<XX>`. States marked **US-only** serve US traffic only - see [caveats](#important-caveats-please-read). A few states also have an **official-source** alternative scraper noted in the last column. All 50 states plus DC and Puerto Rico have complete statutory coverage, with one exception: Pennsylvania, whose Consolidated Statutes are complete but whose older unconsolidated (Purdon's) statutes are a separate backfill. The **Sections** column is the section count in the published `v2026.07` snapshot; the live count is always available from the API.
+Run via `cd scripts/state_scrapers && OUT_DIR=./data python -m src.scrapers.us.states.<xx>.statutes.scrape<XX>`. States marked **US-only** serve US traffic only - see [caveats](#important-caveats-please-read). A few states also have an **official-source** alternative scraper noted in the last column. All 50 states plus DC and Puerto Rico have complete statutory coverage in the hosted API, though rows marked *not in this release* are absent from the published snapshot. One exception to completeness: Pennsylvania, whose Consolidated Statutes are complete but whose older unconsolidated (Purdon's) statutes are a separate backfill. The **Sections** column is the section count in the published `v2026.09` snapshot; the live count is always available from the API.
 
 Many states also have a newer **bulk-source ingester** at [`scripts/statutes/ingest_<state>_bulk.py`](scripts/statutes/) that pulls from an official bulk source (XML zip, API, or PDF) instead of scraping HTML. These share a small pipeline in [`scripts/state_scrapers/vaquill_pipeline/`](scripts/state_scrapers/vaquill_pipeline/) (fetch, chunk, record-build) and per-state parsers in `scripts/statutes/<state>_bulk/`. Run e.g. `OUT_DIR=./data python scripts/statutes/ingest_ny_bulk.py`.
 
-| State | Statute scraper | Sections (v2026.07) | Notes |
+| State | Statute scraper | Sections (v2026.09) | Notes |
 |---|---|---|---|
 | Alaska (`ak`) | [scrapeAK.py](scripts/state_scrapers/src/scrapers/us/states/ak/statutes/scrapeAK.py) | 17,935 |  |
-| Alabama (`al`) | [scrapeAL.py](scripts/state_scrapers/src/scrapers/us/states/al/statutes/scrapeAL.py) | 45,984 | US-only |
-| Arkansas (`ar`) | in progress | 36,936 |  |
-| Arizona (`az`) | [scrapeAZ.py](scripts/state_scrapers/src/scrapers/us/states/az/statutes/scrapeAZ.py) | 22,674 |  |
-| California (`ca`) | [scrapeCA.py](scripts/state_scrapers/src/scrapers/us/states/ca/statutes/scrapeCA.py) | 161,429 |  |
-| Colorado (`co`) | in progress | 34,231 |  |
+| Alabama (`al`) | [scrapeAL.py](scripts/state_scrapers/src/scrapers/us/states/al/statutes/scrapeAL.py) | 46,614 | US-only |
+| Arkansas (`ar`) | in progress | not in this release |  |
+| Arizona (`az`) | [scrapeAZ.py](scripts/state_scrapers/src/scrapers/us/states/az/statutes/scrapeAZ.py) | 24,956 |  |
+| California (`ca`) | [scrapeCA.py](scripts/state_scrapers/src/scrapers/us/states/ca/statutes/scrapeCA.py) | 161,382 |  |
+| Colorado (`co`) | in progress | not in this release |  |
 | Connecticut (`ct`) | [scrapeCT.py](scripts/state_scrapers/src/scrapers/us/states/ct/statutes/scrapeCT.py) | 16,082 | US-only |
-| Delaware (`de`) | [scrapeDE.py](scripts/state_scrapers/src/scrapers/us/states/de/statutes/scrapeDE.py) | 21,649 |  |
-| Florida (`fl`) | [scrapeFL.py](scripts/state_scrapers/src/scrapers/us/states/fl/statutes/scrapeFL.py) | 24,866 |  |
-| Georgia (`ga`) | withdrawn | 28,154 (in `v2026.07` only) | see note below |
-| Hawaii (`hi`) | [scrapeHI.py](scripts/state_scrapers/src/scrapers/us/states/hi/statutes/scrapeHI.py) | 16,446 |  |
+| Delaware (`de`) | [scrapeDE.py](scripts/state_scrapers/src/scrapers/us/states/de/statutes/scrapeDE.py) | 22,669 |  |
+| Florida (`fl`) | [scrapeFL.py](scripts/state_scrapers/src/scrapers/us/states/fl/statutes/scrapeFL.py) | 25,020 |  |
+| Georgia (`ga`) | in progress | not in this release | |
+| Hawaii (`hi`) | [scrapeHI.py](scripts/state_scrapers/src/scrapers/us/states/hi/statutes/scrapeHI.py) | 19,197 |  |
 | Iowa (`ia`) | [scrapeIA.py](scripts/state_scrapers/src/scrapers/us/states/ia/statutes/scrapeIA.py) | 28,223 |  |
 | Idaho (`id`) | [scrapeID.py](scripts/state_scrapers/src/scrapers/us/states/id/statutes/scrapeID.py) | 22,754 |  |
-| Illinois (`il`) | [scrapeIL.py](scripts/state_scrapers/src/scrapers/us/states/il/statutes/scrapeIL.py) | 72,456 |  |
+| Illinois (`il`) | [scrapeIL.py](scripts/state_scrapers/src/scrapers/us/states/il/statutes/scrapeIL.py) | 72,251 |  |
 | Indiana (`in`) | [scrapeIN.py](scripts/state_scrapers/src/scrapers/us/states/in/statutes/scrapeIN.py) | 83,148 | US-only |
 | Kansas (`ks`) | [scrapeKS.py](scripts/state_scrapers/src/scrapers/us/states/ks/statutes/scrapeKS.py) | 24,361 |  |
-| Kentucky (`ky`) | [scrapeKY.py](scripts/state_scrapers/src/scrapers/us/states/ky/statutes/scrapeKY.py) | 20,894 |  |
-| Louisiana (`la`) | [ingest_la_bulk.py](scripts/statutes/ingest_la_bulk.py) | 43,474 |  |
-| Massachusetts (`ma`) | [scrapeMA.py](scripts/state_scrapers/src/scrapers/us/states/ma/statutes/scrapeMA.py) | 23,152 |  |
+| Kentucky (`ky`) | [scrapeKY.py](scripts/state_scrapers/src/scrapers/us/states/ky/statutes/scrapeKY.py) | 21,194 |  |
+| Louisiana (`la`) | [ingest_la_bulk.py](scripts/statutes/ingest_la_bulk.py) | 43,204 |  |
+| Massachusetts (`ma`) | [scrapeMA.py](scripts/state_scrapers/src/scrapers/us/states/ma/statutes/scrapeMA.py) | 23,144 |  |
 | Maryland (`md`) | [scrapeMD.py](scripts/state_scrapers/src/scrapers/us/states/md/statutes/scrapeMD.py) | 39,552 |  |
 | Maine (`me`) | [scrapeME.py](scripts/state_scrapers/src/scrapers/us/states/me/statutes/scrapeME.py) | 25,316 |  |
-| Michigan (`mi`) | [scrapeMI.py](scripts/state_scrapers/src/scrapers/us/states/mi/statutes/scrapeMI.py) | 40,658 |  |
+| Michigan (`mi`) | [scrapeMI.py](scripts/state_scrapers/src/scrapers/us/states/mi/statutes/scrapeMI.py) | 42,355 |  |
 | Minnesota (`mn`) | [scrapeMN.py](scripts/state_scrapers/src/scrapers/us/states/mn/statutes/scrapeMN.py) | 27,747 |  |
-| Missouri (`mo`) | [scrapeMO.py](scripts/state_scrapers/src/scrapers/us/states/mo/statutes/scrapeMO.py) | 29,296 |  |
-| Mississippi (`ms`) | in progress | 158,688 |  |
-| Montana (`mt`) | [scrapeMT.py](scripts/state_scrapers/src/scrapers/us/states/mt/statutes/scrapeMT.py) | 30,514 |  |
-| North Carolina (`nc`) | withdrawn | 26,685 (in `v2026.07` only) | see note below |
+| Missouri (`mo`) | [scrapeMO.py](scripts/state_scrapers/src/scrapers/us/states/mo/statutes/scrapeMO.py) | 29,363 |  |
+| Mississippi (`ms`) | in progress | not in this release |  |
+| Montana (`mt`) | [scrapeMT.py](scripts/state_scrapers/src/scrapers/us/states/mt/statutes/scrapeMT.py) | 30,515 |  |
+| North Carolina (`nc`) | in progress | 41,290 | |
 | North Dakota (`nd`) | [scrapeND.py](scripts/state_scrapers/src/scrapers/us/states/nd/statutes/scrapeND.py) | 29,042 |  |
-| Nebraska (`ne`) | [scrapeNE.py](scripts/state_scrapers/src/scrapers/us/states/ne/statutes/scrapeNE.py) | 25,997 |  |
+| Nebraska (`ne`) | [scrapeNE.py](scripts/state_scrapers/src/scrapers/us/states/ne/statutes/scrapeNE.py) | 28,502 |  |
 | New Hampshire (`nh`) | [scrapeNH.py](scripts/state_scrapers/src/scrapers/us/states/nh/statutes/scrapeNH.py) | 25,375 | US-only |
-| New Jersey (`nj`) | [ingest_nj_bulk.py](scripts/statutes/ingest_nj_bulk.py) | 55,897 |  |
-| New Mexico (`nm`) | in progress | 34,455 |  |
-| Nevada (`nv`) | in progress | 48,190 |  |
-| New York (`ny`) | [scrapeNY.py](scripts/state_scrapers/src/scrapers/us/states/ny/statutes/scrapeNY.py) | 40,102 | US-only |
-| Ohio (`oh`) | [scrapeOH.py](scripts/state_scrapers/src/scrapers/us/states/oh/statutes/scrapeOH.py) | 33,161 | also [official-source](scripts/statutes/ingest_oh_statutes.py) |
-| Oklahoma (`ok`) | [scrapeOK.py](scripts/state_scrapers/src/scrapers/us/states/ok/statutes/scrapeOK.py) | 35,329 |  |
-| Oregon (`or`) | in progress | 36,202 |  |
-| Pennsylvania (`pa`) | [ingest_pa_bulk.py](scripts/statutes/ingest_pa_bulk.py) | 14,547 (Consolidated; Purdon's pending) |  |
+| New Jersey (`nj`) | [ingest_nj_bulk.py](scripts/statutes/ingest_nj_bulk.py) | 55,048 |  |
+| New Mexico (`nm`) | in progress | 31,115 |  |
+| Nevada (`nv`) | in progress | 49,745 |  |
+| New York (`ny`) | [scrapeNY.py](scripts/state_scrapers/src/scrapers/us/states/ny/statutes/scrapeNY.py) | 40,162 | US-only |
+| Ohio (`oh`) | [scrapeOH.py](scripts/state_scrapers/src/scrapers/us/states/oh/statutes/scrapeOH.py) | 33,158 | also [official-source](scripts/statutes/ingest_oh_statutes.py) |
+| Oklahoma (`ok`) | [scrapeOK.py](scripts/state_scrapers/src/scrapers/us/states/ok/statutes/scrapeOK.py) | 35,330 |  |
+| Oregon (`or`) | in progress | 72,664 |  |
+| Pennsylvania (`pa`) | [ingest_pa_bulk.py](scripts/statutes/ingest_pa_bulk.py) | 14,617 |  |
 | Rhode Island (`ri`) | [scrapeRI.py](scripts/state_scrapers/src/scrapers/us/states/ri/statutes/scrapeRI.py) | 21,107 |  |
-| South Carolina (`sc`) | [scrapeSC.py](scripts/state_scrapers/src/scrapers/us/states/sc/statutes/scrapeSC.py) | 29,947 |  |
+| South Carolina (`sc`) | [scrapeSC.py](scripts/state_scrapers/src/scrapers/us/states/sc/statutes/scrapeSC.py) | 30,489 |  |
 | South Dakota (`sd`) | [scrapeSD.py](scripts/state_scrapers/src/scrapers/us/states/sd/statutes/scrapeSD.py) | 39,589 |  |
-| Tennessee (`tn`) | in progress | 32,693 |  |
-| Texas (`tx`) | [scrapeTX.py](scripts/state_scrapers/src/scrapers/us/states/tx/statutes/scrapeTX.py) | 122,535 |  |
-| Utah (`ut`) | [scrapeUT.py](scripts/state_scrapers/src/scrapers/us/states/ut/statutes/scrapeUT.py) | 25,880 | also [official-source](scripts/statutes/ingest_ut_statutes.py) |
-| Virginia (`va`) | [scrapeVA.py](scripts/state_scrapers/src/scrapers/us/states/va/statutes/scrapeVA.py) | 33,856 |  |
+| Tennessee (`tn`) | in progress | not in this release |  |
+| Texas (`tx`) | [scrapeTX.py](scripts/state_scrapers/src/scrapers/us/states/tx/statutes/scrapeTX.py) | 122,630 |  |
+| Utah (`ut`) | [scrapeUT.py](scripts/state_scrapers/src/scrapers/us/states/ut/statutes/scrapeUT.py) | 27,556 | also [official-source](scripts/statutes/ingest_ut_statutes.py) |
+| Virginia (`va`) | [scrapeVA.py](scripts/state_scrapers/src/scrapers/us/states/va/statutes/scrapeVA.py) | 33,861 |  |
 | Vermont (`vt`) | [scrapeVT.py](scripts/state_scrapers/src/scrapers/us/states/vt/statutes/scrapeVT.py) | 23,521 |  |
-| Washington (`wa`) | [scrapeWA.py](scripts/state_scrapers/src/scrapers/us/states/wa/statutes/scrapeWA.py) | 51,498 |  |
+| Washington (`wa`) | [scrapeWA.py](scripts/state_scrapers/src/scrapers/us/states/wa/statutes/scrapeWA.py) | 52,002 |  |
 | Wisconsin (`wi`) | [scrapeWI.py](scripts/state_scrapers/src/scrapers/us/states/wi/statutes/scrapeWI.py) | 18,158 |  |
-| West Virginia (`wv`) | [scrapeWV.py](scripts/state_scrapers/src/scrapers/us/states/wv/statutes/scrapeWV.py) | 25,460 |  |
-| Wyoming (`wy`) | in progress | 10,219 |  |
+| West Virginia (`wv`) | [scrapeWV.py](scripts/state_scrapers/src/scrapers/us/states/wv/statutes/scrapeWV.py) | 25,664 |  |
+| Wyoming (`wy`) | in progress | 20,995 |  |
 
-> Puerto Rico statutes: complete, 23,636 sections, ingested from the official OGP portal (bvirtualogp.pr.gov).
+> Puerto Rico statutes: complete, 24,301 sections, ingested from the official OGP portal (bvirtualogp.pr.gov).
 
-> **Georgia and North Carolina statutes have been withdrawn.** Our copy of both carried the source site's own navigation and footer text inside the section bodies, so the sections were not clean statutory text. They have been removed from the live corpus and do not appear in `v2026.08`. They are still present in `v2026.07`, which is a fixed historical artifact. Both are being re-ingested from an official publisher; Georgia is the harder of the two, since the O.C.G.A. has no free official bulk source.
 
 ### State regulations
 
@@ -257,9 +258,11 @@ Every jurisdiction in that script is scraped from the state's own official publi
 The **law itself is public domain** (US government edicts - *Georgia v. Public.Resource.Org*). On top of that:
 
 - **Scripts** - Apache-2.0 ([`LICENSE`](LICENSE)). Free, including commercial use.
-- **Data / compilation** - CC BY 4.0 ([`data/LICENSE.md`](data/LICENSE.md)). Free with attribution.
+- **Data / compilation** - CC BY-NC 4.0 from `v2026.09` ([`data/LICENSE.md`](data/LICENSE.md)). Free for non-commercial use, with attribution. Snapshots before `v2026.09` were released under CC BY 4.0, and that licence continues to apply to copies of them.
 
-**The dataset is free for everyone.** You never need to email us or ask permission to use it. Just download it and go, including for commercial products, as long as you attribute it.
+**The dataset is free for non-commercial use.** Research, teaching, legal aid, journalism, public-interest work and open-source projects can download it and use it without asking us, as long as you attribute it. Building something commercial on the compilation needs a licence from us: email **contact@vaquill.ai**, or use the hosted API below.
+
+**Arizona.** The Arizona Secretary of State charges a fee for commercial use of the Arizona Administrative Code (A.R.S. 39-121.03). If you use the Arizona regulations commercially, that obligation is yours to meet with the State.
 
 ### The hosted API (optional)
 
@@ -271,7 +274,7 @@ We also run a hosted API: the same law, kept up to date and searchable section b
   `Open US Law API - non-commercial - <your use case>`
 
   Tell us briefly who you are and what you are building. The free key is best-effort and rate-limited, with no uptime guarantee. The dataset itself has none of those limits.
-- **Commercial use is paid.** Details at **[vaquill.ai/legal-api](https://www.vaquill.ai/legal-api)**. This covers live always-fresh data, retrieval-ready delivery (pre-chunked, embedded, citation-linked for RAG), bulk export, SLA and support, custom coverage, and a commercial data license (an attribution waiver and/or warranty & indemnity, if CC BY 4.0's terms don't fit your compliance needs).
+- **Commercial use is paid.** Details at **[vaquill.ai/legal-api](https://www.vaquill.ai/legal-api)**. This covers live always-fresh data, retrieval-ready delivery (pre-chunked, embedded, citation-linked for RAG), bulk export, SLA and support, custom coverage, and a commercial data license, with an attribution waiver and warranty and indemnity where your compliance needs them.
 - **Want it built for you?** If you want a product, a workflow, or a data pipeline built on top of this, we take on that work. Email contact@vaquill.ai.
 
 ## Contributing
