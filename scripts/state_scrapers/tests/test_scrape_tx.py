@@ -338,6 +338,8 @@ def test_section_without_history_has_no_core_metadata(emitted):
     ("Sec. 7. Repealed by Acts 2019, 86th Leg.", "7", ("", "Repealed by Acts 2019, 86th Leg.")),
     ("Sec. 5.", "5", ("", "")),
     ("Sec. 2. U.S. CITIZENSHIP; PROOF. An applicant must", "2", ("U.S. CITIZENSHIP; PROOF.", "An applicant must")),
+    ("Art. 6243i. UNITARY RETIREMENT SYSTEM FOR CERTAIN MUNICIPALITIES", "6243i",
+     ("UNITARY RETIREMENT SYSTEM FOR CERTAIN MUNICIPALITIES", "")),
 ])
 def test_split_head_caption_and_body(text, num, expected):
     assert tx._split_head(text, num) == expected
@@ -360,3 +362,19 @@ def test_centered_article_headings_inside_an_act_nest_under_it(emitted):
     assert "us/tx/statutes/code=cv/title=109/article=6243e.2/article=2/section=2.01" in ids
     assert "us/tx/statutes/code=cv/title=109/article=6243f/section=1" in ids
     assert len(ids) == len(set(ids))
+
+
+def test_repealed_section_keeps_its_notice_text(emitted):
+    html = ('<html><body><p class="center" style="font-weight:bold;">CHAPTER 1. X</p>'
+            '<p style="text-indent:7ex;" class="left">Sec. 7. Repealed by Acts 2019, 86th Leg., R.S., Ch. 203 (H.B. 2820), Sec. 1.10(3), eff. September 1, 2019.</p>'
+            '<p style="text-indent:7ex;" class="left">Sec. 8. [Reserved]</p></body></html>')
+    tx._parse_page(BeautifulSoup(html, "html.parser"), _code_node("AG", "Agriculture Code"),
+                   "AG", "Agriculture Code", "https://tcss.legis.texas.gov/resources/AG/htm/AG.1.htm",
+                   fallback_chapter_name=None, seen=set())
+    nodes = _by_id(emitted)
+    sec7 = nodes["us/tx/statutes/code=ag/chapter=1/section=7"]
+    assert sec7.status == "reserved"
+    assert list(sec7.node_text.paragraphs.values())[0].text.startswith("Repealed by Acts 2019")
+    sec8 = nodes["us/tx/statutes/code=ag/chapter=1/section=8"]
+    assert sec8.status == "reserved" and sec8.node_name == "§ 8."
+    assert list(sec8.node_text.paragraphs.values())[0].text == "[Reserved]"

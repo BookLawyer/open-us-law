@@ -475,8 +475,12 @@ def _split_head(text: str, raw_num: str):
     i = 0
     while i < len(words) and words[i] and not re.search(r"[a-z]", words[i]) and not words[i].startswith("("):
         i += 1
-    while i > 0 and not words[i - 1].endswith("."):
-        i -= 1
+    if i < len(words):
+        # Body follows: the caption ends at its last period. A caption that
+        # fills the whole paragraph ("Art. 6243i. UNITARY RETIREMENT SYSTEM")
+        # may lack the period and is kept whole.
+        while i > 0 and not words[i - 1].endswith("."):
+            i -= 1
     caption = " ".join(words[:i]).strip()
     body = " ".join(words[i:]).strip()
     return caption, _clean_text(body)
@@ -659,7 +663,9 @@ class _PageParser:
             node_name=self.cur_name,
             parent=parent.node_id,
             status=self.cur_status,
-            node_text=self.cur_text if not self.cur_status else None,
+            # Repealed/reserved sections keep their notice ("Repealed by Acts
+            # 2019, ...") so the year and the reason survive downstream.
+            node_text=self.cur_text if (self.cur_text and self.cur_text.paragraphs) else None,
             addendum=addendum,
             core_metadata=_core_metadata(history),
         )
