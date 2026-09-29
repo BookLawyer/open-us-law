@@ -7,7 +7,11 @@ State statutory codes, the US Code, the Code of Federal Regulations, state admin
 
 ## New in v2026.09
 
-- **5,276,632 sections** in 317 files. Every section appears exactly once and carries the official URL it was published from.
+*Updated September 29, 2026.*
+
+- **5,276,632 sections**, up from 2,978,617 in `v2026.08` (+2,298,015).
+- **317 files**, up from 229, including 95 new ones.
+- Every section appears exactly once and carries the official URL it was published from.
 - **Regulations for 49 jurisdictions**, alongside the current Code of Federal Regulations.
 - **104,540 state attorney general opinions** from 42 jurisdictions.
 - **Past editions of the Code of Federal Regulations** (886,066 sections), in their own `cfr_annual` config so historical text never mixes with the regulation in force.
