@@ -426,13 +426,21 @@ def _clean_text(raw: str) -> str:
     return text.strip()
 
 
+_HISTORY_PREFIXES = (
+    "Acts ", "Added by", "Amended by", "Redesignated", "Transferred",
+    "Expired ", "Renumbered", "Reenacted", "Repealed by", "Assigned by",
+    "Formerly ", "Text of ",
+)
+_HISTORY_SEC_RE = re.compile(r"^Sec\. [\dA-Za-z.\-]+ (?:amended|added|repealed|redesignated) by\b")
+
+
 def _is_history_line(text: str) -> bool:
-    """Detect amendment/history lines (no text-indent or known prefixes)."""
-    history_prefixes = (
-        "Acts ", "Added by", "Amended by", "Redesignated", "Transferred",
-        "Expired ", "Renumbered", "Reenacted",
-    )
-    return text.startswith(history_prefixes)
+    """Amendment/history lines: "Acts 1973, ...", "Added by Acts ...",
+    "Repealed by Acts ...", "Formerly Sec. 15.108, ...". Measured on the
+    2026-09-29 full run: 202,982 history lines, all but form boilerplate
+    (signature blanks, "STATE OF TEXAS") start with one of these.
+    """
+    return text.startswith(_HISTORY_PREFIXES) or bool(_HISTORY_SEC_RE.match(text))
 
 
 def _section_status(name: str) -> Optional[str]:
@@ -511,7 +519,7 @@ class _PageParser:
         self.code_node = code_node
         self.code = code
         self.code_name = code_name
-        self.page_url = page_url
+        self.page_url = page_url.split("#")[0]  # section links add their own anchor
         self.seen = seen              # structure ids already inserted for this code
         # (level, number, node, container): container marks an "Art. N."
         # paragraph promoted to hold sections, parts or ARTICLE headings.
@@ -641,7 +649,9 @@ class _PageParser:
     def add_body(self, text: str, indented: bool) -> None:
         if self.cur_number is None:
             return
-        if not indented or _is_history_line(text):
+        # History is recognised by its wording, not by indentation: compacts
+        # and forms print body paragraphs without text-indent.
+        if _is_history_line(text):
             self.cur_history += text + "\n"
         else:
             if self.cur_text is None:
@@ -792,11 +802,18 @@ def _parse_page(
             parser.notes.append(text)
             continue
 
+        style = p.get("style", "")
         sec_match = SECTION_RE.match(text)
         if sec_match and sec_match.group(1) == "Section" and not (
                 parser.cur_kind == "article" or parser._container_index() is not None):
             # Spelled-out "Section N." only heads sections inside uncodified
             # acts; in a codified section it is body text.
+            sec_match = None
+        if (sec_match and "text-indent" not in style and parser.cur_number is not None
+                and not parser.cur_history):
+            # Section headings are indented; an unindented "Sec. N." inside a
+            # pending section is compact text (IN 5002 prints its compact's
+            # "Sec. 1. Definitions." lines flush left).
             sec_match = None
         if sec_match:
             _open_fallback()
@@ -807,7 +824,6 @@ def _parse_page(
             parser.start(kind, raw_num, text, p.get("id", ""))
             continue
 
-        style = p.get("style", "")
         parser.add_body(text, indented="text-indent" in style)
 
     parser.flush()
@@ -821,7 +837,8 @@ def _parse_page(
 def _scrape_page(entry: dict, code_node: Node, code: str, code_name: str, seen: set) -> int:
     """Fetch and parse one chapter page. Returns content nodes emitted."""
     name: str = (entry.get("name") or "").strip()
-    page_url: str = (entry.get("url") or "").strip()
+    # GetStatuteArray urls end in "#"; section links append their own anchor.
+    page_url: str = (entry.get("url") or "").strip().split("#")[0]
     if not _page_token(page_url, code):
         print(f"  [skip] unrecognised page url: name={name!r} url={page_url!r}", flush=True)
         return 0

@@ -506,3 +506,41 @@ def test_fallback_chapter_opens_before_a_subchapter_heading(emitted):
     assert "us/tx/statutes/code=ag/title=2/chapter=5/subchapter=a/section=5.01" in nodes
     assert "us/tx/statutes/code=ag/title=2/chapter=5/subchapter=b/section=5.02" in nodes
     assert nodes["us/tx/statutes/code=ag/title=2/chapter=5"].node_name == "CHAPTER 5. FOO"
+
+
+def test_page_url_fragment_from_api_is_stripped_before_section_anchor(emitted):
+    tx._parse_page(_soup("PE.19.htm"), _code_node("PE", "Penal Code"), "PE", "Penal Code",
+                   "https://tcss.legis.texas.gov/resources/PE/htm/PE.19.htm#",
+                   fallback_chapter_name=None, seen=set())
+    sec = _by_id(emitted)["us/tx/statutes/code=pe/title=5/chapter=19/section=19.02"]
+    assert str(sec.link) == "https://tcss.legis.texas.gov/resources/PE/htm/PE.19.htm#19.02"
+    assert str(_by_id(emitted)["us/tx/statutes/code=pe/title=5/chapter=19"].link) == \
+        "https://tcss.legis.texas.gov/resources/PE/htm/PE.19.htm"
+
+
+def test_unindented_compact_paragraphs_are_body_not_history(emitted):
+    nodes = _run(emitted,
+                 _C("CHAPTER 501. PSYCHOLOGISTS") +
+                 _S("Sec. 501.601. PSYCHOLOGY INTERJURISDICTIONAL COMPACT. The compact is enacted as follows:") +
+                 _N("PSYCHOLOGY INTERJURISDICTIONAL COMPACT") + _N("ARTICLE I. PURPOSE") +
+                 _H("Whereas, states license psychologists, in order to protect the public.") +
+                 '<p style="text-indent:5ex;padding-left:10ex;">1. Increase public access to services.</p>' +
+                 _N("ARTICLE II. DEFINITIONS") +
+                 '<p style="padding-left:5ex;" class="left">A. "Adverse Action" means: any action taken.</p>' +
+                 _H("Sec. 1. Definitions. As used in this Compact, unless the context indicates otherwise.") +
+                 _H("Sec. 2. Pledge. The Member States shall take joint action.") +
+                 _H("Added by Acts 2017, 85th Leg., R.S., Ch. 1, Sec. 1, eff. September 1, 2017.") +
+                 _S("Sec. 501.602. COMMISSIONER. The governor appoints a commissioner.") +
+                 _H("Added by Acts 2017, 85th Leg., R.S., Ch. 1, Sec. 1, eff. September 1, 2017."),
+                 code="OC", name="Occupations Code")
+    base = "us/tx/statutes/code=oc/chapter=501"
+    sec = nodes[f"{base}/section=501.601"]
+    paras = [p.text for p in sec.node_text.paragraphs.values()]
+    assert paras[0].startswith("The compact is enacted")
+    assert "ARTICLE II. DEFINITIONS" in paras
+    assert any(p.startswith("Whereas, states") for p in paras)
+    assert any(p.startswith("A. \"Adverse Action\"") for p in paras)
+    assert any(p.startswith("Sec. 1. Definitions.") for p in paras)
+    assert sec.addendum.history.text == "Added by Acts 2017, 85th Leg., R.S., Ch. 1, Sec. 1, eff. September 1, 2017."
+    assert [n.number for n in nodes.values() if n.node_type == "content"] == ["501.601", "501.602"]
+    assert not any(n.level_classifier == "article" for n in nodes.values())
