@@ -442,6 +442,18 @@ def _section_status(name: str) -> Optional[str]:
     return None
 
 
+# A section whose entire text is one notice ("Repealed by Acts 2019, ...",
+# "[Reserved]", "Expired.") is a placeholder. A repealed subsection inside an
+# otherwise in-force section ("(a) Repealed by ...") is not.
+_NOTICE_RE = re.compile(r"^\[?(Repealed|Reserved|Expired)\b")
+
+
+def _notice_status(paragraphs: List[str]) -> Optional[str]:
+    if len(paragraphs) == 1 and _NOTICE_RE.match(paragraphs[0]):
+        return "reserved"
+    return None
+
+
 # Structure levels in nesting order. A heading at one level closes every
 # deeper level. ``article`` is last because an "Art. N." paragraph that is
 # followed by "Sec. N." paragraphs is a container for those sections.
@@ -514,6 +526,9 @@ class _PageParser:
         self.cur_history: str = ""
         self.cur_anchor: str = ""
         self.cur_status: Optional[str] = None
+        # Centered notes seen since the last heading/section ("Text of
+        # section as added by Acts 2025 ..."); they open the next section.
+        self.notes: List[str] = []
 
     # -- structure -------------------------------------------------------
 
@@ -553,8 +568,9 @@ class _PageParser:
             self.stack.pop()
 
     def open_level(self, level: str, number: str, name: str, link: Optional[str] = None,
-                   container: bool = False) -> Node:
+                   container: bool = False, node_text: Optional[NodeText] = None) -> Node:
         self.flush()
+        self.notes = []
         self._close_to(level, container=container)
         parent = self.parent_node
         node_id = f"{parent.node_id}/{level}={number}"
@@ -567,6 +583,7 @@ class _PageParser:
             number=number,
             node_name=name,
             parent=parent.node_id,
+            node_text=node_text,
         )
         if node_id not in self.seen:
             self.seen.add(node_id)
@@ -600,10 +617,13 @@ class _PageParser:
         self.cur_number = raw_num
         self.cur_caption = caption
         self.cur_anchor = anchor or raw_num
-        self.cur_status = _section_status(caption) or _section_status(body[:80])
+        self.cur_status = _section_status(caption)
         prefix = "Art." if kind == "article" else "§"
         self.cur_name = f"{prefix} {raw_num}. {caption}".rstrip() if caption else f"{prefix} {raw_num}."
         self.cur_text = NodeText()
+        for note in self.notes:
+            self.cur_text.add_paragraph(note)
+        self.notes = []
         if body:
             self.cur_text.add_paragraph(body)
         self.cur_history = ""
@@ -612,10 +632,11 @@ class _PageParser:
         """The pending article is followed by a Sec.: make it a container."""
         num, name = self.cur_number, self.cur_name
         link = f"{self.page_url}#{self.cur_anchor}" if self.cur_anchor else self.page_url
-        if self.cur_text and self.cur_text.paragraphs:
-            print(f"  [note] article {num} has body text before its sections; text dropped", flush=True)
+        # Lead text printed before the act's first section stays on the
+        # container node (structure nodes may carry node_text).
+        lead = self.cur_text if (self.cur_text and self.cur_text.paragraphs) else None
         self._reset_current()
-        self.open_level("article", num.lower(), name, link=link, container=True)
+        self.open_level("article", num.lower(), name, link=link, container=True, node_text=lead)
 
     def add_body(self, text: str, indented: bool) -> None:
         if self.cur_number is None:
@@ -643,7 +664,16 @@ class _PageParser:
             return
         parent = self.parent_node
         level = "article" if self.cur_kind == "article" else "section"
-        node_id = f"{parent.node_id}/{level}={self.cur_number}"
+        base_id = f"{parent.node_id}/{level}={self.cur_number}"
+        # The site prints alternate versions of one section ("Text of section
+        # as added by Acts 2025 ...") and sometimes a whole chapter twice
+        # (ES.1054.htm and ES.1054.v2.htm). Every version is kept; later ones
+        # get a -vN suffix so ids stay unique.
+        node_id, n = base_id, 1
+        while node_id in self.seen:
+            n += 1
+            node_id = f"{base_id}-v{n}"
+        self.seen.add(node_id)
         citation = self._citation(level, self.cur_number)
         link = f"{self.page_url}#{self.cur_anchor}" if self.cur_anchor else self.page_url
 
@@ -651,6 +681,9 @@ class _PageParser:
         history = self.cur_history.strip()
         if history:
             addendum = Addendum(history=AddendumType(type="history", text=history))
+
+        paragraphs = [p.text for p in self.cur_text.paragraphs.values()] if self.cur_text else []
+        status = self.cur_status or _notice_status(paragraphs)
 
         node = Node(
             id=node_id,
@@ -662,7 +695,7 @@ class _PageParser:
             number=self.cur_number,
             node_name=self.cur_name,
             parent=parent.node_id,
-            status=self.cur_status,
+            status=status,
             # Repealed/reserved sections keep their notice ("Repealed by Acts
             # 2019, ...") so the year and the reason survive downstream.
             node_text=self.cur_text if (self.cur_text and self.cur_text.paragraphs) else None,
@@ -731,6 +764,12 @@ def _parse_page(
     else:
         pending_fallback = None
 
+    def _open_fallback():
+        nonlocal pending_fallback
+        if pending_fallback:
+            parser.open_level("chapter", pending_fallback[0], pending_fallback[1])
+            pending_fallback = None
+
     for p, classes, text in texts:
         if "center" in classes:
             m = HEADING_RE.match(text)
@@ -743,18 +782,24 @@ def _parse_page(
                 # section's text, not structure.
                 parser.add_body(text, indented=True)
                 continue
+            if level in ("subchapter", "part", "article"):
+                _open_fallback()
             if parser.heading(text):
                 continue
-            # Other centered lines (code banner, version notes, editorial
-            # notes such as "The following article was held ...") are not
-            # headings and are skipped.
+            # Other centered lines: the code banner (cleared by the next
+            # heading) and version/editorial notes, which open the next
+            # section's text.
+            parser.notes.append(text)
             continue
 
         sec_match = SECTION_RE.match(text)
+        if sec_match and sec_match.group(1) == "Section" and not (
+                parser.cur_kind == "article" or parser._container_index() is not None):
+            # Spelled-out "Section N." only heads sections inside uncodified
+            # acts; in a codified section it is body text.
+            sec_match = None
         if sec_match:
-            if pending_fallback:
-                parser.open_level("chapter", pending_fallback[0], pending_fallback[1])
-                pending_fallback = None
+            _open_fallback()
             kind = "article" if sec_match.group(1) == "Art." else "section"
             raw_num = sec_match.group(2).rstrip(".")
             if kind == "section" and parser.cur_kind == "article":

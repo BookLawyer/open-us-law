@@ -410,3 +410,99 @@ def test_version_note_after_history_is_not_appended_to_previous_section(emitted)
     nodes = _by_id(emitted)
     paras = [p.text for p in nodes["us/tx/statutes/code=pe/chapter=32/section=32.55"].node_text.paragraphs.values()]
     assert paras == ["Body one."]
+
+
+# ---------------------------------------------------------------------------
+# Review fixes: spelled-out Section in codified codes, versioned sections,
+# status widening, article lead text, fallback chapter ordering
+# ---------------------------------------------------------------------------
+
+def _C(t): return f'<p class="center" style="font-weight:bold;">{t}</p>'
+def _N(t): return f'<p class="center">{t}</p>'
+def _S(t): return f'<p style="text-indent:7ex;" class="left">{t}</p>'
+def _B(t): return f'<p style="text-indent:13ex;" class="left">{t}</p>'
+def _H(t): return f'<p class="left">{t}</p>'
+
+
+def _run(emitted, html, code="AG", name="Agriculture Code", fallback=None, seen=None, page="1"):
+    tx._parse_page(BeautifulSoup(f"<html><body>{html}</body></html>", "html.parser"),
+                   _code_node(code, name), code, name,
+                   f"https://tcss.legis.texas.gov/resources/{code}/htm/{code}.{page}.htm",
+                   fallback_chapter_name=fallback, seen=seen if seen is not None else set())
+    return _by_id(emitted)
+
+
+def test_spelled_out_section_in_a_codified_section_is_body_text(emitted):
+    nodes = _run(emitted, _C("CHAPTER 1. X") + _S("Sec. 1.01. ONE. Body.") +
+                 _B("Section 3. of the Act reads as follows.") + _B("Section 4 of the Act is repealed."))
+    content = [n for n in nodes.values() if n.node_type == "content"]
+    assert [n.number for n in content] == ["1.01"]
+    assert len(content[0].node_text.paragraphs) == 3
+
+
+def test_two_versions_of_one_section_get_version_suffixed_ids(emitted):
+    nodes = _run(emitted,
+                 _C("PENAL CODE") + _C("TITLE 7. OFFENSES AGAINST PROPERTY") + _C("CHAPTER 32. FRAUD") +
+                 _N("Text of section as added by Acts 2025, 89th Leg., R.S., Ch. 100 (H.B. 1)") +
+                 _S("Sec. 32.56. FRAUDULENT USE. (a) A person commits an offense if version A.") +
+                 _H("Added by Acts 2025, 89th Leg., R.S., Ch. 100 (H.B. 1), Sec. 1, eff. September 1, 2025.") +
+                 _N("For text of section as added by Acts 2025, 89th Leg., R.S., Ch. 100 (H.B. 1), see other Sec. 32.56.") +
+                 _S("Sec. 32.56. UNLAWFUL DISCLOSURE. (a) A person commits an offense if version B.") +
+                 _H("Added by Acts 2025, 89th Leg., R.S., Ch. 200 (S.B. 2), Sec. 1, eff. September 1, 2025."),
+                 code="PE", name="Penal Code")
+    base = "us/tx/statutes/code=pe/title=7/chapter=32"
+    a, b = nodes[f"{base}/section=32.56"], nodes[f"{base}/section=32.56-v2"]
+    assert a.number == b.number == "32.56" and a.citation == b.citation == "Tex. Penal Code § 32.56"
+    assert b.node_name == "§ 32.56. UNLAWFUL DISCLOSURE."
+    assert list(b.node_text.paragraphs.values())[0].text.startswith("For text of section as added by Acts 2025")
+    assert list(a.node_text.paragraphs.values())[0].text.startswith("Text of section as added by Acts 2025")
+    assert list(a.node_text.paragraphs.values())[1].text.startswith("(a) A person")
+
+
+def test_same_chapter_served_on_a_second_page_gets_version_ids(emitted):
+    seen = set()
+    html = _C("CHAPTER 1054. X") + _S("Sec. 1054.001. ONE. Body.")
+    _run(emitted, html, code="ES", name="Estates Code", seen=seen, page="1054")
+    _run(emitted, html, code="ES", name="Estates Code", seen=seen, page="1054.v2")
+    ids = [n.node_id for n in emitted if n.node_type == "content"]
+    assert ids == ["us/tx/statutes/code=es/chapter=1054/section=1054.001",
+                   "us/tx/statutes/code=es/chapter=1054/section=1054.001-v2"]
+
+
+def test_repealed_subsection_does_not_mark_the_section_reserved(emitted):
+    nodes = _run(emitted, _C("CHAPTER 1. X") +
+                 _S("Sec. 1.01. DUTIES. (a) Repealed by Acts 2011, 82nd Leg., R.S., Ch. 1, Sec. 2, eff. September 1, 2011.") +
+                 _B("(b) The board shall adopt rules.") +
+                 _S('Sec. 1.02. OTHER. (a) The term "Repealed" has its ordinary meaning.') +
+                 _B("(b) The board shall adopt rules.") +
+                 _S("Sec. 1.03. Repealed by Acts 2011, 82nd Leg., R.S., Ch. 1, Sec. 3, eff. September 1, 2011.") +
+                 _S("Sec. 1.04. Expired.") +
+                 _S("Sec. 1.05. [Blank]. (a) Text.") + _B("Repealed by Acts 2011, Sec. 4."))
+    base = "us/tx/statutes/code=ag/chapter=1"
+    assert nodes[f"{base}/section=1.01"].status is None
+    assert nodes[f"{base}/section=1.02"].status is None
+    assert nodes[f"{base}/section=1.03"].status == "reserved"
+    assert nodes[f"{base}/section=1.04"].status == "reserved"
+    assert nodes[f"{base}/section=1.05"].status is None
+
+
+def test_article_lead_text_is_kept_on_the_container(emitted):
+    nodes = _run(emitted, _C("TITLE 109. PENSIONS") +
+                 _S("Art. 6243a. PENSION SYSTEM. This article applies to a municipality over 1 million.") +
+                 _B("The legislature finds that the system is important.") +
+                 _S("Sec. 1. DEFINITIONS. In this article:") + _S("Sec. 2. BOARD. A board is created."),
+                 code="CV", name="Vernon's Civil Statutes")
+    art = nodes["us/tx/statutes/code=cv/title=109/article=6243a"]
+    assert art.node_type == "structure"
+    assert [p.text for p in art.node_text.paragraphs.values()] == [
+        "This article applies to a municipality over 1 million.",
+        "The legislature finds that the system is important."]
+    assert "us/tx/statutes/code=cv/title=109/article=6243a/section=1" in nodes
+
+
+def test_fallback_chapter_opens_before_a_subchapter_heading(emitted):
+    nodes = _run(emitted, _C("TITLE 2. X") + _C("SUBCHAPTER A. GENERAL") + _S("Sec. 5.01. ONE. Body.") +
+                 _C("SUBCHAPTER B. MORE") + _S("Sec. 5.02. TWO. Body."), fallback="CHAPTER 5. FOO")
+    assert "us/tx/statutes/code=ag/title=2/chapter=5/subchapter=a/section=5.01" in nodes
+    assert "us/tx/statutes/code=ag/title=2/chapter=5/subchapter=b/section=5.02" in nodes
+    assert nodes["us/tx/statutes/code=ag/title=2/chapter=5"].node_name == "CHAPTER 5. FOO"
