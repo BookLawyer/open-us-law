@@ -733,6 +733,16 @@ def _parse_page(
 
     for p, classes, text in texts:
         if "center" in classes:
+            m = HEADING_RE.match(text)
+            level = m.group(1).lower() if m else None
+            if (level in (None, "article") and parser.cur_kind == "section"
+                    and not parser.cur_history and parser._container_index() is None):
+                # Interstate compacts print their articles as centered lines
+                # ("MULTISTATE TAX COMPACT", "ARTICLE I. PURPOSES") inside the
+                # adopting section, before its history line. They are that
+                # section's text, not structure.
+                parser.add_body(text, indented=True)
+                continue
             if parser.heading(text):
                 continue
             # Other centered lines (code banner, version notes, editorial

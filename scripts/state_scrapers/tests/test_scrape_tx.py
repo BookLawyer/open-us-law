@@ -378,3 +378,35 @@ def test_repealed_section_keeps_its_notice_text(emitted):
     sec8 = nodes["us/tx/statutes/code=ag/chapter=1/section=8"]
     assert sec8.status == "reserved" and sec8.node_name == "§ 8."
     assert list(sec8.node_text.paragraphs.values())[0].text == "[Reserved]"
+
+
+# ---------------------------------------------------------------------------
+# Review fix: compact ARTICLE lines printed inside a section are body text
+# ---------------------------------------------------------------------------
+
+def test_compact_article_lines_inside_a_section_stay_in_its_text(emitted):
+    nodes = _by_id(_parse("TX.141.htm", "TX", "Tax Code", emitted))
+    base = "us/tx/statutes/code=tx/title=2/subtitle=d/chapter=141"
+    sec = nodes[f"{base}/section=141.001"]
+    paras = [p.text for p in sec.node_text.paragraphs.values()]
+    assert "ARTICLE I. PURPOSES" in paras and "ARTICLE XII. CONSTRUCTION AND SEVERABILITY" in paras
+    assert "MULTISTATE TAX COMPACT" in paras
+    assert len(paras) > 100
+    assert sec.addendum.history.text.startswith("Acts 1981")
+    assert not any(n.level_classifier == "article" for n in nodes.values())
+    assert nodes[f"{base}/section=141.002"].parent == base
+    assert sum(1 for n in nodes.values() if n.node_type == "content") == 5
+
+
+def test_version_note_after_history_is_not_appended_to_previous_section(emitted):
+    html = ('<html><body><p class="center" style="font-weight:bold;">CHAPTER 32. FRAUD</p>'
+            '<p style="text-indent:7ex;" class="left">Sec. 32.55. X. Body one.</p>'
+            '<p class="left">Acts 1973, 63rd Leg., ch. 399, Sec. 1, eff. Jan. 1, 1974.</p>'
+            '<p class="center">For text of section as added by Acts 2025, 89th Leg., R.S., Ch. 817, see other Sec. 32.56.</p>'
+            '<p style="text-indent:7ex;" class="left">Sec. 32.56. Y. Body two.</p></body></html>')
+    tx._parse_page(BeautifulSoup(html, "html.parser"), _code_node("PE", "Penal Code"),
+                   "PE", "Penal Code", "https://tcss.legis.texas.gov/resources/PE/htm/PE.32.htm",
+                   fallback_chapter_name=None, seen=set())
+    nodes = _by_id(emitted)
+    paras = [p.text for p in nodes["us/tx/statutes/code=pe/chapter=32/section=32.55"].node_text.paragraphs.values()]
+    assert paras == ["Body one."]
