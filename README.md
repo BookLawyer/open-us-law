@@ -5,6 +5,19 @@ State statutory codes, the US Code, the Code of Federal Regulations, state admin
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/GQtnwxf8nQ)
 
+## New in v2026.09
+
+- **5,276,632 sections** in 317 files. Every section appears exactly once and carries the official URL it was published from.
+- **Regulations for 49 jurisdictions**, alongside the current Code of Federal Regulations.
+- **104,540 state attorney general opinions** from 42 jurisdictions.
+- **Past editions of the Code of Federal Regulations** (886,066 sections), in their own `cfr_annual` config so historical text never mixes with the regulation in force.
+- **More federal law:** proposed rules and Federal Register notices, session laws and statute compilations, and decisions from the NLRB, FTC, SEC, MSPB, the Board of Immigration Appeals and the Office of Legal Counsel.
+- **A new licence.** From `v2026.09` the compilation is released under CC BY-NC 4.0. Earlier snapshots keep CC BY 4.0. The scrapers stay Apache-2.0.
+
+This release supersedes `v2026.08`.
+
+> **Getting a licence.** This dataset is free for research, teaching, legal aid, journalism and other non-commercial use, with attribution. To get a licence to use this data commercially, email **contact@vaquill.ai**.
+
 ## Why this exists
 
 The law is public. Reading it should not cost money.
@@ -67,7 +80,7 @@ Snapshot `v2026.09` contains **5,276,632 sections** across 317 files:
 
 Parquet, one 24-column schema across every jurisdiction, CC BY-NC 4.0. Sections carry `act_status` (`in_force`, `repealed`, `reserved`, `superseded`, …), citation, full title/chapter hierarchy, and cross-references into the USC and CFR. Every section appears once and carries the official URL it was published from. New dated snapshots quarterly.
 
-`v2026.09` supersedes `v2026.08`. It adds regulations for 49 jurisdictions, state attorney general opinions, past CFR editions, proposed federal rules, Federal Register notices, federal session laws and statute compilations, and decisions from the NLRB, FTC, SEC, MSPB, the Board of Immigration Appeals and the Office of Legal Counsel. Some jurisdictions' statutes, regulations and court rules are not in this release; the [dataset card](https://huggingface.co/datasets/vaquill/open-us-law) lists them.
+Some jurisdictions' statutes, regulations and court rules are not in this release; the [dataset card](https://huggingface.co/datasets/vaquill/open-us-law) lists them.
 
 **Coming next:** more state regulations from official publishers, and more corpora to fill the remaining gaps. See what's being added on the [coverage roadmap](https://www.vaquill.ai/docs/api-guide/coverage#coming-next).
 
