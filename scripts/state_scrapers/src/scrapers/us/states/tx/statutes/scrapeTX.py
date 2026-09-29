@@ -533,6 +533,18 @@ def scrape_code(corpus_node: Node, code: str, code_name: str):
         _scrape_chapter(chapter_entry, code_node, code, code_name)
 
 
+def _work_items(titles_done: set, only_codes: str) -> List[Tuple[str, str]]:
+    """Codes to scrape this run: ``TX_CODES`` minus the resume set, then
+    narrowed to ``only_codes`` (comma-separated, case-insensitive, from
+    ``TX_ONLY_CODES``) when that is non-empty. Unknown codes are ignored.
+    """
+    work = [(code, name) for code, name in TX_CODES if code not in titles_done]
+    wanted = {c.strip().upper() for c in only_codes.split(",") if c.strip()}
+    if wanted:
+        work = [(code, name) for code, name in work if code in wanted]
+    return work
+
+
 def main():
     """Walk all 26 Texas codes in parallel.
 
@@ -544,6 +556,7 @@ def main():
 
     Resume: completed codes are persisted in ``state_tx_titles_done.txt`` and
     skipped on re-runs. Set ``VAQUILL_FORCE_RESCRAPE=1`` to override.
+    ``TX_ONLY_CODES=PE,CV`` restricts the run to those codes.
     """
     corpus_node: Node = insert_jurisdiction_and_corpus_node(COUNTRY, JURISDICTION, CORPUS)
 
@@ -555,7 +568,7 @@ def main():
             flush=True,
         )
 
-    work = [(code, name) for code, name in TX_CODES if code not in titles_done]
+    work = _work_items(titles_done, os.environ.get("TX_ONLY_CODES", ""))
 
     def _do_code(item: Tuple[str, str]):
         code, name = item

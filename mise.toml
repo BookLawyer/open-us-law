@@ -1,0 +1,24 @@
+# Local task runner for the open-us-law scrapers (tx-gaps branch).
+# Python deps live in ./.venv (created on first `mise run install`).
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.install]
+description = "Install scraper dependencies into ./.venv"
+run = "uv pip install -r requirements.txt pytest"
+
+[tasks.scrape]
+description = "Run one state's statute scraper (path A: raw node JSONL to scripts/state_scrapers/data). Usage: mise run scrape tx"
+dir = "scripts/state_scrapers"
+run = 'st="{{arg(name="state")}}"; OUT_DIR=./data python -m "src.scrapers.us.states.${st}.statutes.scrape$(printf %s "$st" | tr a-z A-Z)"'
+
+[tasks.scrape-tx-code]
+description = "Run the Texas scraper for the listed codes only (comma-separated: PE or PE,CV). Codes in the resume file are still skipped unless VAQUILL_FORCE_RESCRAPE=1"
+dir = "scripts/state_scrapers"
+run = 'TX_ONLY_CODES="{{arg(name="codes")}}" OUT_DIR=./data python -m src.scrapers.us.states.tx.statutes.scrapeTX'
+
+[tasks.test]
+description = "Scraper unit tests (no network)"
+dir = "scripts/state_scrapers"
+run = "python -m pytest tests -q"
