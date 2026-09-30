@@ -1,0 +1,159 @@
+{
+	"StatuteCode": [
+		{
+			"codeID": "5",
+			"code": "CN",
+			"CodeName": "The Texas Constitution"
+		},
+		{
+			"codeID": "1",
+			"code": "AG",
+			"CodeName": "Agriculture Code"
+		},
+		{
+			"codeID": "2",
+			"code": "AL",
+			"CodeName": "Alcoholic Beverage Code"
+		},
+		{
+			"codeID": "31",
+			"code": "WL",
+			"CodeName": "Auxiliary Water Laws"
+		},
+		{
+			"codeID": "4",
+			"code": "BC",
+			"CodeName": "Business & Commerce Code"
+		},
+		{
+			"codeID": "32",
+			"code": "BO",
+			"CodeName": "Business Organizations Code"
+		},
+		{
+			"codeID": "6",
+			"code": "CP",
+			"CodeName": "Civil Practice and Remedies Code"
+		},
+		{
+			"codeID": "7",
+			"code": "CR",
+			"CodeName": "Code of Criminal Procedure"
+		},
+		{
+			"codeID": "9",
+			"code": "ED",
+			"CodeName": "Education Code"
+		},
+		{
+			"codeID": "10",
+			"code": "EL",
+			"CodeName": "Election Code"
+		},
+		{
+			"codeID": "35",
+			"code": "ES",
+			"CodeName": "Estates Code"
+		},
+		{
+			"codeID": "11",
+			"code": "FA",
+			"CodeName": "Family Code"
+		},
+		{
+			"codeID": "12",
+			"code": "FI",
+			"CodeName": "Finance Code"
+		},
+		{
+			"codeID": "13",
+			"code": "GV",
+			"CodeName": "Government Code"
+		},
+		{
+			"codeID": "15",
+			"code": "HS",
+			"CodeName": "Health and Safety Code"
+		},
+		{
+			"codeID": "14",
+			"code": "HR",
+			"CodeName": "Human Resources Code"
+		},
+		{
+			"codeID": "17",
+			"code": "IN",
+			"CodeName": "Insurance Code"
+		},
+		{
+			"codeID": "16",
+			"code": "I1",
+			"CodeName": "Insurance Code - Not Codified"
+		},
+		{
+			"codeID": "18",
+			"code": "LA",
+			"CodeName": "Labor Code"
+		},
+		{
+			"codeID": "19",
+			"code": "LG",
+			"CodeName": "Local Government Code"
+		},
+		{
+			"codeID": "21",
+			"code": "NR",
+			"CodeName": "Natural Resources Code"
+		},
+		{
+			"codeID": "22",
+			"code": "OC",
+			"CodeName": "Occupations Code"
+		},
+		{
+			"codeID": "26",
+			"code": "PW",
+			"CodeName": "Parks and Wildlife Code"
+		},
+		{
+			"codeID": "24",
+			"code": "PE",
+			"CodeName": "Penal Code"
+		},
+		{
+			"codeID": "25",
+			"code": "PR",
+			"CodeName": "Property Code"
+		},
+		{
+			"codeID": "33",
+			"code": "SD",
+			"CodeName": "Special District Local Laws Code"
+		},
+		{
+			"codeID": "28",
+			"code": "TX",
+			"CodeName": "Tax Code"
+		},
+		{
+			"codeID": "27",
+			"code": "TN",
+			"CodeName": "Transportation Code"
+		},
+		{
+			"codeID": "29",
+			"code": "UT",
+			"CodeName": "Utilities Code"
+		},
+		{
+			"codeID": "30",
+			"code": "WA",
+			"CodeName": "Water Code"
+		},
+		{
+			"codeID": "8",
+			"code": "CV",
+			"CodeName": "Vernon's Civil Statutes"
+		}
+	]
+}
