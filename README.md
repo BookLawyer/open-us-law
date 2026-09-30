@@ -1,24 +1,21 @@
 # Open US Law
 
 **Open, structured US primary law - plus the scrapers that build it.**  
-State statutory codes, the US Code, the Code of Federal Regulations, state administrative regulations, state and federal constitutions, and court rules - normalized to a single schema, from official government sources.
+State statutory codes, the US Code, the Code of Federal Regulations, state administrative regulations, state and federal constitutions, and court rules - normalized to a single schema, published by US federal, state and territorial governments.
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/GQtnwxf8nQ)
 
-## New in v2026.09
+## New in v2026.09.1
 
-*Updated September 29, 2026.*
+*Updated September 30, 2026.*
 
-- **5,276,632 sections**, up from 2,978,617 in `v2026.08` (+2,298,015).
-- **317 files**, up from 229, including 95 new ones.
-- Every section appears exactly once and carries the official URL it was published from.
-- **Regulations for 49 jurisdictions**, alongside the current Code of Federal Regulations.
-- **104,540 state attorney general opinions** from 42 jurisdictions.
-- **Past editions of the Code of Federal Regulations** (886,066 sections), in their own `cfr_annual` config so historical text never mixes with the regulation in force.
-- **More federal law:** proposed rules and Federal Register notices, session laws and statute compilations, and decisions from the NLRB, FTC, SEC, MSPB, the Board of Immigration Appeals and the Office of Legal Counsel.
-- **A new licence.** From `v2026.09` the compilation is released under CC BY-NC 4.0. Earlier snapshots keep CC BY 4.0. The scrapers stay Apache-2.0.
+- **5,081,709 sections**, down from 5,276,632 in `v2026.09` (-194,923).
+- **308 files**, down from 317.
+- **Regulations withdrawn** for Arizona, Hawaii, Indiana, Louisiana, Massachusetts, Missouri, Rhode Island, Tennessee and Texas. Their publishers block automated access, and we will not redistribute text obtained by working around that.
+- **Three new columns:** `official_status` (the publisher's own label, such as `unofficial`), `currency_note` and `adopting_citations`. The first 24 columns are unchanged. The [dataset card](https://huggingface.co/datasets/vaquill/open-us-law) explains each one.
+- An earlier upload of `v2026.09` to the download mirror on 2026-09-29 briefly carried regulations for California and New York and court rules for Arizona, Kentucky, Maryland and Oklahoma. They were withdrawn from the mirror the same day and were never on the Hugging Face Hub.
 
-This release supersedes `v2026.08`.
+This release supersedes `v2026.09`.
 
 > **Getting a licence.** This dataset is free for research, teaching, legal aid, journalism and other non-commercial use, with attribution. To get a licence to use this data commercially, email **contact@vaquill.ai**.
 
@@ -30,7 +27,7 @@ In practice, it does. A state's regulations sit behind a login. Court rules are 
 
 We are not accepting it.
 
-So here is every US statute, regulation, constitution, court rule, attorney general opinion, agency decision and guidance document we could get our hands on. Pulled from official government sources. Cleaned, parsed, deduplicated, structured, and handed over. Five million sections. No key, no quota, no sign-up, no sales call. Download it and use it for research, teaching, legal aid, journalism, open source, anything non-commercial. If you want to build a commercial product on it, talk to us.
+So here is every US statute, regulation, constitution, court rule, attorney general opinion, agency decision and guidance document we could get our hands on. Published by US federal, state and territorial governments, and collected by our crawlers. Where a regulations publisher blocks automated access, we leave its text out rather than work around the block. Cleaned, parsed, deduplicated, structured, and handed over. Five million sections. No key, no quota, no sign-up, no sales call. Download it and use it for research, teaching, legal aid, journalism, open source, anything non-commercial. If you want to build a commercial product on it, talk to us.
 
 We built this because somebody had to, and because the people who could have done it years ago decided the paywall was more interesting.
 
@@ -67,22 +64,22 @@ ds = load_dataset("vaquill/open-us-law", data_files="us_ca_statutes.parquet")
 rules = load_dataset("vaquill/open-us-law", data_files="us_*_court_rules.parquet")
 ```
 
-Prefer a direct download? Everything is mirrored on Cloudflare R2 (zero egress, range-request friendly): browse **[oss-data-us.vaquill.ai](https://oss-data-us.vaquill.ai/index.html)**, grab the [combined tarball](https://oss-data-us.vaquill.ai/v2026.09/open-us-law-v2026.09-parquet.tar) (7.07 GB), or read the [manifest](https://oss-data-us.vaquill.ai/index.json). `index.json` and `latest.json` always describe the current snapshot, so those URLs never change between releases.
+Prefer a direct download? Everything is mirrored on Cloudflare R2 (zero egress, range-request friendly): browse **[oss-data-us.vaquill.ai](https://oss-data-us.vaquill.ai/index.html)**, grab the [combined tarball](https://oss-data-us.vaquill.ai/v2026.09.1/open-us-law-v2026.09.1-parquet.tar) (6.91 GB), or read the [manifest](https://oss-data-us.vaquill.ai/index.json). `index.json` and `latest.json` always describe the current snapshot, so those URLs never change between releases.
 
-Snapshot `v2026.09` contains **5,276,632 sections** across 317 files:
+Snapshot `v2026.09.1` contains **5,081,709 sections** across 308 files:
 
 | Corpus | Sections | Jurisdictions |
 |---|---:|---|
-| Statutes (state, territorial, and the US Code) | 1,827,612 | 48 |
-| Regulations (state, and the current federal CFR) | 1,579,425 | 49 |
+| Statutes (state, territorial, and the US Code) | 1,828,123 | 48 |
+| Regulations (state, and the current federal CFR) | 1,383,931 | 40 |
 | State attorney general opinions | 104,540 | 42 |
 | Court rules | 49,244 | 47 |
 | Agency guidance (including state insurance bulletins) | 54,050 | 50 |
 | Constitutions | 11,864 | 51 |
 | Past CFR editions (historical) | 886,066 | federal |
-| Federal session laws, proposed rules, agency decisions, rulings, treaties, executive orders and other | 763,831 | federal |
+| Federal session laws, proposed rules, agency decisions, rulings, treaties, executive orders and other | 763,891 | federal |
 
-Parquet, one 24-column schema across every jurisdiction, CC BY-NC 4.0. Sections carry `act_status` (`in_force`, `repealed`, `reserved`, `superseded`, …), citation, full title/chapter hierarchy, and cross-references into the USC and CFR. Every section appears once and carries the official URL it was published from. New dated snapshots quarterly.
+Parquet, one 27-column schema across every jurisdiction (the 24 columns of earlier snapshots, unchanged, plus `official_status`, `currency_note` and `adopting_citations`), CC BY-NC 4.0. Sections carry `act_status` (`in_force`, `repealed`, `reserved`, `superseded`, …), citation, full title/chapter hierarchy, and cross-references into the USC and CFR. Every section appears once and carries the URL of the government publisher it came from. New dated snapshots quarterly.
 
 Some jurisdictions' statutes, regulations and court rules are not in this release; the [dataset card](https://huggingface.co/datasets/vaquill/open-us-law) lists them.
 
@@ -158,17 +155,17 @@ Every scraper writes **JSONL** - one normalized node/section per line - to `$OUT
 
 ### State statutes (all 50 states)
 
-Run via `cd scripts/state_scrapers && OUT_DIR=./data python -m src.scrapers.us.states.<xx>.statutes.scrape<XX>`. States marked **US-only** serve US traffic only - see [caveats](#important-caveats-please-read). A few states also have an **official-source** alternative scraper noted in the last column. All 50 states plus DC and Puerto Rico have complete statutory coverage in the hosted API, though rows marked *not in this release* are absent from the published snapshot. One exception to completeness: Pennsylvania, whose Consolidated Statutes are complete but whose older unconsolidated (Purdon's) statutes are a separate backfill. The **Sections** column is the section count in the published `v2026.09` snapshot; the live count is always available from the API.
+Run via `cd scripts/state_scrapers && OUT_DIR=./data python -m src.scrapers.us.states.<xx>.statutes.scrape<XX>`. States marked **US-only** serve US traffic only - see [caveats](#important-caveats-please-read). A few states also have an **official-source** alternative scraper noted in the last column. All 50 states plus DC and Puerto Rico have complete statutory coverage in the hosted API, though rows marked *not in this release* are absent from the published snapshot. One exception to completeness: Pennsylvania, whose Consolidated Statutes are complete but whose older unconsolidated (Purdon's) statutes are a separate backfill. The **Sections** column is the section count in the published `v2026.09.1` snapshot; the live count is always available from the API.
 
 Many states also have a newer **bulk-source ingester** at [`scripts/statutes/ingest_<state>_bulk.py`](scripts/statutes/) that pulls from an official bulk source (XML zip, API, or PDF) instead of scraping HTML. These share a small pipeline in [`scripts/state_scrapers/vaquill_pipeline/`](scripts/state_scrapers/vaquill_pipeline/) (fetch, chunk, record-build) and per-state parsers in `scripts/statutes/<state>_bulk/`. Run e.g. `OUT_DIR=./data python scripts/statutes/ingest_ny_bulk.py`.
 
-| State | Statute scraper | Sections (v2026.09) | Notes |
+| State | Statute scraper | Sections (v2026.09.1) | Notes |
 |---|---|---|---|
 | Alaska (`ak`) | [scrapeAK.py](scripts/state_scrapers/src/scrapers/us/states/ak/statutes/scrapeAK.py) | 17,935 |  |
 | Alabama (`al`) | [scrapeAL.py](scripts/state_scrapers/src/scrapers/us/states/al/statutes/scrapeAL.py) | 46,614 | US-only |
 | Arkansas (`ar`) | in progress | not in this release |  |
 | Arizona (`az`) | [scrapeAZ.py](scripts/state_scrapers/src/scrapers/us/states/az/statutes/scrapeAZ.py) | 24,956 |  |
-| California (`ca`) | [scrapeCA.py](scripts/state_scrapers/src/scrapers/us/states/ca/statutes/scrapeCA.py) | 161,382 |  |
+| California (`ca`) | [scrapeCA.py](scripts/state_scrapers/src/scrapers/us/states/ca/statutes/scrapeCA.py) | 161,428 |  |
 | Colorado (`co`) | in progress | not in this release |  |
 | Connecticut (`ct`) | [scrapeCT.py](scripts/state_scrapers/src/scrapers/us/states/ct/statutes/scrapeCT.py) | 16,082 | US-only |
 | Delaware (`de`) | [scrapeDE.py](scripts/state_scrapers/src/scrapers/us/states/de/statutes/scrapeDE.py) | 22,669 |  |
@@ -181,7 +178,7 @@ Many states also have a newer **bulk-source ingester** at [`scripts/statutes/ing
 | Indiana (`in`) | [scrapeIN.py](scripts/state_scrapers/src/scrapers/us/states/in/statutes/scrapeIN.py) | 83,148 | US-only |
 | Kansas (`ks`) | [scrapeKS.py](scripts/state_scrapers/src/scrapers/us/states/ks/statutes/scrapeKS.py) | 24,361 |  |
 | Kentucky (`ky`) | [scrapeKY.py](scripts/state_scrapers/src/scrapers/us/states/ky/statutes/scrapeKY.py) | 21,194 |  |
-| Louisiana (`la`) | [ingest_la_bulk.py](scripts/statutes/ingest_la_bulk.py) | 43,204 |  |
+| Louisiana (`la`) | [ingest_la_bulk.py](scripts/statutes/ingest_la_bulk.py) | 43,213 |  |
 | Massachusetts (`ma`) | [scrapeMA.py](scripts/state_scrapers/src/scrapers/us/states/ma/statutes/scrapeMA.py) | 23,144 |  |
 | Maryland (`md`) | [scrapeMD.py](scripts/state_scrapers/src/scrapers/us/states/md/statutes/scrapeMD.py) | 39,552 |  |
 | Maine (`me`) | [scrapeME.py](scripts/state_scrapers/src/scrapers/us/states/me/statutes/scrapeME.py) | 25,316 |  |
@@ -215,7 +212,7 @@ Many states also have a newer **bulk-source ingester** at [`scripts/statutes/ing
 | West Virginia (`wv`) | [scrapeWV.py](scripts/state_scrapers/src/scrapers/us/states/wv/statutes/scrapeWV.py) | 25,664 |  |
 | Wyoming (`wy`) | in progress | 20,995 |  |
 
-> Puerto Rico statutes: complete, 24,301 sections, ingested from the official OGP portal (bvirtualogp.pr.gov).
+> Puerto Rico statutes: complete, 24,763 sections, ingested from the official OGP portal (bvirtualogp.pr.gov).
 
 
 ### State regulations
@@ -279,8 +276,6 @@ The **law itself is public domain** (US government edicts - *Georgia v. Public.R
 
 **The dataset is free for non-commercial use.** Research, teaching, legal aid, journalism, public-interest work and open-source projects can download it and use it without asking us, as long as you attribute it. Building something commercial on the compilation needs a licence from us: email **contact@vaquill.ai**, or use the hosted API below.
 
-**Arizona.** The Arizona Secretary of State charges a fee for commercial use of the Arizona Administrative Code (A.R.S. 39-121.03). If you use the Arizona regulations commercially, that obligation is yours to meet with the State.
-
 ### The hosted API (optional)
 
 We also run a hosted API: the same law, kept up to date and searchable section by section, so you do not have to run the scrapers or handle breakage yourself.
@@ -300,7 +295,7 @@ New-jurisdiction parsers, coverage fixes, and - especially - **repairs to state 
 
 ## Provenance
 
-Data derives from official government sources (state legislature / secretary-of-state sites, uscode.house.gov, the eCFR, the Federal Register, GPO govinfo), and those records keep the exact source URL they were ingested from.
+The publisher of every section is a government body (state legislature / secretary-of-state sites, uscode.house.gov, the eCFR, the Federal Register, GPO govinfo), and every record keeps the exact source URL it was ingested from. Our crawlers collected the text with automated requests, in some cases through US-based proxy servers because a site serves only US visitors. Where a state regulations publisher actively blocks automated access, its regulations are not in the published snapshot.
 
 The retrieval layer (embeddings, semantic index, citation graph) is intentionally out of scope here.
 
